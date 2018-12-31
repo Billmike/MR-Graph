@@ -9,7 +9,8 @@ const recipeSchema = new Schema({
   cookTime: String,
   ingredients: String,
   instructions: String,
-  votes: Array,
+  upvotes: Array,
+  downvotes: Array,
   ownerId: String
 });
 

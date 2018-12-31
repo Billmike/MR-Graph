@@ -20,7 +20,8 @@ const RecipeType = new GraphQLObjectType({
     category: { type: GraphQLString },
     ingredients: { type: GraphQLString },
     instructions: { type: GraphQLString },
-    votes: { type: new GraphQLList(GraphQLID) },
+    upvotes: { type: new GraphQLList(GraphQLID) },
+    downvotes: { type: new GraphQLList(GraphQLID) },
     owner: {
       type: UserType,
       resolve(parent, args) {
@@ -279,17 +280,24 @@ const Mutation = new GraphQLObjectType({
       args: {
         userId: { type: GraphQLID },
         recipeId: { type: GraphQLID },
-        dateVoted: { type: GraphQLString }
+        dateVoted: { type: GraphQLString },
+        voteType: { type: GraphQLString }
       },
       resolve: async (parent, args) => {
         const query = { _id: args.recipeId }
         const recipe = await Recipes.findOne(query);
-        console.log('Votes', recipe.votes)
-        console.log('UserId', args.userId)
-        if (recipe.votes.includes(args.userId)) {
-          return 'User voted already'
+        if (args.voteType === "upvote") {
+          if (recipe.upvotes.includes(args.userId)) {
+            return 'User voted already'
+          }
+          await Recipes.findOneAndUpdate(query, { $push: { upvotes: args.userId } }, { new: true })
+        } else if (args.voteType === "downvote") {
+          if (recipe.downvotes.includes(args.userId)) {
+            return 'User downvoted already'
+          }
+          await Recipes.findOneAndUpdate(query, { $push: { downvotes: args.userId } }, { $new: true })
         }
-        await Recipes.findOneAndUpdate(query, { $push: { votes: args.userId } }, { new: true })
+
         const vote = new Votes({
           userId: args.userId,
           recipeId: args.recipeId,
