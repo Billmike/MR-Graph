@@ -18,6 +18,7 @@
 * Registered users can edit their recipes in the application.
 * Registered users can delete their recipes in the application.
 * Registered users can add and remove recipes from their list of favorite recipes.
+* Registered users can add comments to recipes
 
 ## Technology Stack used
 
