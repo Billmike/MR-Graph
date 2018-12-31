@@ -124,6 +124,19 @@ const RootQuery = new GraphQLObjectType({
       resolve(parent, args) {
         return Users.find({})
       }
+    },
+    search: {
+      type: new GraphQLList(RecipeType),
+      args: {
+        name: { type: GraphQLString }
+      },
+      resolve(parent, args) {
+        return Recipes.find({
+          name: {
+            $all:[args.name]
+          }
+        })
+      }
     }
   }
 });
@@ -305,7 +318,7 @@ const Mutation = new GraphQLObjectType({
         })
         return vote.save()
       }
-    }
+    },
   }
 })
 
