@@ -21,6 +21,7 @@
 * Registered users can add comments to recipes
 * Registered users can upvote on recipes
 * Registered users can downvote on recipes
+* Registered users can search for recipes by Recipe name
 
 ## Technology Stack used
 
