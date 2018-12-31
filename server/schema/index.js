@@ -2,59 +2,12 @@ const graphql = require('graphql');
 const Recipes = require('../models/recipe');
 const Users = require('../models/users');
 const Favorites = require('../models/favorites');
+const Comments = require('../models/comments');
 const bycrpt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const { GraphQLObjectType, GraphQLString, GraphQLSchema, GraphQLID,
 GraphQLList } = graphql;
-
-const recipes = [
-  {
-    id: '1',
-    name: 'First recipe',
-    description: 'First recipe',
-    cookTime: '38mins',
-    category: 'Lunch',
-    ingredients: 'Onions, Rice, Tomatoes',
-    instructions: 'Cook properly. Dont wash intermittently',
-    ownerId: '1',
-  },
-  {
-    id: '2',
-    name: 'Second recipe',
-    description: 'Second recipe',
-    cookTime: '38mins',
-    category: 'Lunch',
-    ingredients: 'Onions, Rice, Tomatoes',
-    instructions: 'Cook properly. Dont wash intermittently',
-    ownerId: '2',
-  },
-  {
-    id: '3',
-    name: 'Third recipe',
-    description: 'Third recipe',
-    cookTime: '38mins',
-    category: 'Lunch',
-    ingredients: 'Onions, Rice, Tomatoes',
-    instructions: 'Cook properly. Dont wash intermittently',
-    ownerId: '3',
-  }
-];
-
-const users = [
-  { id: '1', email: 'bill@gmail.com', fullName: 'Bill Giddy' },
-  { id: '2', email: 'james@gmail.com', fullName: 'Gandy' },
-  { id: '3', email: 'dandy@gmail.com', fullName: 'Dandy Lion' }
-];
-
-const favorites = [
-  { id: '1', recipeId: '1', email: 'bill@gmail.com', fullName: 'Bill Giddy' },
-  { id: '2', recipeId: '1', email: 'james@gmail.com', fullName: 'Gandy' },
-  { id: '3', recipeId: '2', email: 'dandy@gmail.com', fullName: 'Dandy Lion' },
-  { id: '4', recipeId: '3', email: 'james@gmail.com', fullName: 'Gandy' },
-  { id: '5', recipeId: '2', email: 'dandy@gmail.com', fullName: 'Dandy Lion' },
-  { id: '6', recipeId: '3', email: 'bill@gmail.com', fullName: 'Bill Giddy' },
-]
 
 const RecipeType = new GraphQLObjectType({
   name: 'Recipe',
@@ -76,6 +29,12 @@ const RecipeType = new GraphQLObjectType({
       type: new GraphQLList(UserType),
       resolve(parent, args) {
         return Favorites.find({ recipeId: parent.id })
+      }
+    },
+    comments: {
+      type: new GraphQLList(CommentType),
+      resolve(parent, args) {
+        return Comments.find({ recipeId: parent.id })
       }
     }
   })
@@ -106,7 +65,18 @@ const FavoriteType = new GraphQLObjectType({
     fullName: { type: GraphQLString },
     recipeId: { type: GraphQLID }
   })
-})
+});
+
+const CommentType = new GraphQLObjectType({
+  name: 'Comment',
+  fields: () => ({
+    id: { type: GraphQLID },
+    fullName: { type: GraphQLString },
+    comment: { type: GraphQLString },
+    recipeId: { type: GraphQLString },
+    timePosted: { type: GraphQLString }
+  })
+});
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
@@ -272,6 +242,24 @@ const Mutation = new GraphQLObjectType({
       },
       resolve(parent, args) {
         return Recipes.deleteOne({ _id: args.id });
+      }
+    },
+    addComment: {
+      type: CommentType,
+      args: {
+        fullName: { type: GraphQLString },
+        comment: { type: GraphQLString },
+        timePosted: { type: GraphQLString },
+        recipeId: { type: GraphQLID }
+      },
+      resolve(parent, args) {
+        const comment = new Comments({
+          fullName: args.fullName,
+          comment: args.comment,
+          timePosted: args.timePosted,
+          recipeId: args.recipeId
+        });
+        return comment.save();
       }
     }
   }
