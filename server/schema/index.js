@@ -3,6 +3,7 @@ const Recipes = require('../models/recipe');
 const Users = require('../models/users');
 const Favorites = require('../models/favorites');
 const Comments = require('../models/comments');
+const Votes = require('../models/votes');
 const bycrpt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -19,6 +20,7 @@ const RecipeType = new GraphQLObjectType({
     category: { type: GraphQLString },
     ingredients: { type: GraphQLString },
     instructions: { type: GraphQLString },
+    votes: { type: new GraphQLList(GraphQLID) },
     owner: {
       type: UserType,
       resolve(parent, args) {
@@ -73,10 +75,20 @@ const CommentType = new GraphQLObjectType({
     id: { type: GraphQLID },
     fullName: { type: GraphQLString },
     comment: { type: GraphQLString },
-    recipeId: { type: GraphQLString },
+    recipeId: { type: GraphQLID },
     timePosted: { type: GraphQLString }
   })
 });
+
+const VoteType = new GraphQLObjectType({
+  name: 'Vote',
+  fields: () => ({
+    id: { type: GraphQLID },
+    recipeId: { type: GraphQLID },
+    userId: { type: GraphQLID },
+    dateVoted: { type: GraphQLString }
+  })
+})
 
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
@@ -260,6 +272,30 @@ const Mutation = new GraphQLObjectType({
           recipeId: args.recipeId
         });
         return comment.save();
+      }
+    },
+    vote: {
+      type: VoteType,
+      args: {
+        userId: { type: GraphQLID },
+        recipeId: { type: GraphQLID },
+        dateVoted: { type: GraphQLString }
+      },
+      resolve: async (parent, args) => {
+        const query = { _id: args.recipeId }
+        const recipe = await Recipes.findOne(query);
+        console.log('Votes', recipe.votes)
+        console.log('UserId', args.userId)
+        if (recipe.votes.includes(args.userId)) {
+          return 'User voted already'
+        }
+        await Recipes.findOneAndUpdate(query, { $push: { votes: args.userId } }, { new: true })
+        const vote = new Votes({
+          userId: args.userId,
+          recipeId: args.recipeId,
+          dateVoted: args.dateVoted
+        })
+        return vote.save()
       }
     }
   }
