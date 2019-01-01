@@ -115,8 +115,12 @@ const RootQuery = new GraphQLObjectType({
     },
     recipes: {
       type: new GraphQLList(RecipeType),
+      args: {
+        count: { type: GraphQLID }
+      },
       resolve(parent, args) {
-        return Recipes.find({})
+        const intCount = parseInt(args.count, 10)
+        return Recipes.find({}).limit(intCount)
       }
     },
     owners: {
