@@ -132,8 +132,8 @@ const RootQuery = new GraphQLObjectType({
       },
       resolve(parent, args) {
         return Recipes.find({
-          name: {
-            $all:[args.name]
+          $text: {
+            $search: args.name
           }
         })
       }
@@ -303,10 +303,16 @@ const Mutation = new GraphQLObjectType({
           if (recipe.upvotes.includes(args.userId)) {
             return 'User voted already'
           }
+          if (recipe.downvotes.includes(args.userId)) {
+            await Recipes.findOneAndUpdate(query, { $pull: { downvotes: args.userId } }, { new: true })
+          }
           await Recipes.findOneAndUpdate(query, { $push: { upvotes: args.userId } }, { new: true })
         } else if (args.voteType === "downvote") {
           if (recipe.downvotes.includes(args.userId)) {
             return 'User downvoted already'
+          }
+          if (recipe.upvotes.includes(args.userId)) {
+            await Recipes.findOneAndUpdate(query, { $pull: { upvotes: args.userId } }, { $new: true })
           }
           await Recipes.findOneAndUpdate(query, { $push: { downvotes: args.userId } }, { $new: true })
         }
