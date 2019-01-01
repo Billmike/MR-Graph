@@ -22,6 +22,7 @@
 * Registered users can upvote on recipes
 * Registered users can downvote on recipes
 * Registered users can search for recipes by Recipe name
+* Users can get a paginated set of recipes
 
 ## Technology Stack used
 
